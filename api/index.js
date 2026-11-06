@@ -5,9 +5,19 @@ const fs = require('fs');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+// Load environment variables (.env or atlas-credentials.env)
+require('dotenv').config();
+if (fs.existsSync(path.join(process.cwd(), 'atlas-credentials.env'))) {
+  require('dotenv').config({ path: path.join(process.cwd(), 'atlas-credentials.env') });
+}
+
 const app = express();
 const LEADER_KEY = process.env.LEADER_KEY || 'math2026';
-const MONGODB_URI = process.env.MONGODB_URI;
+
+let MONGODB_URI = process.env.MONGODB_URI;
+if (MONGODB_URI && !MONGODB_URI.includes('?')) {
+  MONGODB_URI = MONGODB_URI.replace(/\/?$/, '/mathclub?retryWrites=true&w=majority');
+}
 
 // Cloud Database Schema (for Vercel & MongoDB Atlas)
 const submissionSchema = new mongoose.Schema({
@@ -45,9 +55,12 @@ let isConnected = false;
 async function connectDb() {
   if (MONGODB_URI) {
     if (!isConnected) {
-      await mongoose.connect(MONGODB_URI, { bufferCommands: false });
+      await mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 5000,
+        bufferCommands: false
+      });
       isConnected = true;
-      console.log('[+] Connected to MongoDB Atlas');
+      console.log('[+] Connected to MongoDB Atlas cluster');
     }
     if (!SubmissionModel) {
       SubmissionModel = mongoose.models.Submission || mongoose.model('Submission', submissionSchema);
@@ -55,9 +68,8 @@ async function connectDb() {
   }
 }
 
-// Local File Store Fallback (When running locally without MongoDB)
+// Local File Store Fallback (when MongoDB is not configured)
 const DATA_DIR = path.join(process.cwd(), 'data');
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
 const SUBMISSIONS_FILE = path.join(DATA_DIR, 'submissions.json');
 
 function getLocalSubmissions() {
@@ -74,15 +86,14 @@ function saveLocalSubmissions(data) {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (e) {
-    console.error('Local save warning (expected on read-only serverless):', e.message);
+    console.warn('Local save skipped (read-only environment):', e.message);
   }
 }
 
-// Use Memory Storage for Vercel Serverless (handles photos up to 10MB each)
-const storage = multer.memoryStorage();
+// Memory storage for serverless execution
 const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit per photo
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -97,11 +108,8 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Serve local static files when running outside Vercel
+// Serve static frontend files
 app.use(express.static(path.join(process.cwd(), 'public')));
-if (fs.existsSync(UPLOADS_DIR)) {
-  app.use('/uploads', express.static(UPLOADS_DIR));
-}
 
 // Leader Auth Check
 function authLeader(req, res, next) {
@@ -147,7 +155,7 @@ app.post(
 
       const applicantId = 'MMC-' + Date.now().toString().slice(-6) + '-' + Math.floor(100 + Math.random() * 900);
 
-      // Convert image buffers into self-contained data URLs (works 100% on Vercel without external S3)
+      // Self-contained Base64 Data URLs so images persist anywhere without external file storage
       const term1DataUrl = `data:${term1File.mimetype};base64,${term1File.buffer.toString('base64')}`;
       const term2DataUrl = `data:${term2File.mimetype};base64,${term2File.buffer.toString('base64')}`;
 
@@ -181,8 +189,8 @@ app.post(
 
       if (MONGODB_URI && SubmissionModel) {
         await SubmissionModel.create(newSubmission);
+        console.log(`[+] Stored in MongoDB Atlas: ${applicantId} (${name})`);
       } else {
-        // Fallback for local testing
         const list = getLocalSubmissions();
         list.unshift(newSubmission);
         saveLocalSubmissions(list);
@@ -337,13 +345,13 @@ app.get('/api/export-csv', authLeader, async (req, res) => {
   }
 });
 
-// Export handler for Vercel
+// Export app for Vercel
 module.exports = app;
 
-// Local development listener
+// Local development server
 if (require.main === module || !process.env.VERCEL) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[+] Server listening on port ${PORT}`);
+    console.log(`[+] Server running on http://localhost:${PORT}`);
   });
 }
