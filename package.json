@@ -1,0 +1,20 @@
+{
+  "name": "math-mechanics-leadership-form",
+  "version": "1.0.0",
+  "description": "Leadership selection form and leader review portal for Math and Mechanics Club",
+  "main": "api/index.js",
+  "scripts": {
+    "start": "node api/index.js",
+    "dev": "node api/index.js"
+  },
+  "keywords": ["math", "stem", "club", "leadership", "form"],
+  "author": "Math & Mechanics Club",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.3.0",
+    "mongoose": "^9.12.0",
+    "multer": "^2.5.0"
+  }
+}

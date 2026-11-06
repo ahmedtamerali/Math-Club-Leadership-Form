@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leadership Application | Math & Mechanics Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+  <div class="background-decorations">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="math-grid-pattern"></div>
+    <!-- Subtle math & mechanics formulas in background -->
+    <span class="floating-symbol sym-1">∑ F = m·a</span>
+    <span class="floating-symbol sym-2">∫ e^x dx</span>
+    <span class="floating-symbol sym-3">τ = r × F</span>
+    <span class="floating-symbol sym-4">∇ × B = μ₀J</span>
+    <span class="floating-symbol sym-5">lim(x→0) sin(x)/x = 1</span>
+  </div>
+
+  <div class="container">
+    <!-- Header Banner -->
+    <header class="app-header">
+      <div class="club-badge">
+        <div class="badge-icon">
+          <i class="fa-solid fa-compass-drafting"></i>
+        </div>
+        <div class="badge-text">
+          <span class="badge-sub">STEM Excellence</span>
+          <span class="badge-main">Math & Mechanics Club</span>
+        </div>
+      </div>
+      <h1 class="page-title">Leadership Application Form</h1>
+      <p class="page-subtitle">
+        Are you ready to inspire, lead, and shape the next generation of problem solvers and engineers? Complete this application to apply for the Club Leader position for the upcoming season.
+      </p>
+
+      <div class="info-chips">
+        <div class="chip"><i class="fa-solid fa-graduation-cap"></i> Grade 10 Applicants</div>
+        <div class="chip"><i class="fa-solid fa-clock"></i> ~10 Mins to Complete</div>
+        <div class="chip"><i class="fa-solid fa-camera"></i> Grade Photos Required</div>
+      </div>
+    </header>
+
+    <!-- Main Application Form -->
+    <main class="form-wrapper" id="formContainer">
+      <form id="leadershipForm" novalidate>
+        
+        <!-- Section 1: Contact Information -->
+        <section class="form-card">
+          <div class="card-header">
+            <div class="step-indicator">01</div>
+            <div>
+              <h2 class="card-title">Applicant Contact Information</h2>
+              <p class="card-desc">Please provide your verified school and personal contact details.</p>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group full-width">
+              <label for="fullName">Full Name <span class="req">*</span></label>
+              <div class="input-icon-wrap">
+                <i class="fa-regular fa-user"></i>
+                <input type="text" id="fullName" name="name" placeholder="e.g. Mostafa Ahmed Mohamed" required autocomplete="name">
+              </div>
+              <span class="error-msg" id="nameError"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="phoneNumber">Phone Number / WhatsApp <span class="req">*</span></label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-phone"></i>
+                <input type="tel" id="phoneNumber" name="phone" placeholder="e.g. 01012345678" required autocomplete="tel">
+              </div>
+              <span class="field-hint">Used for committee coordination & interviews</span>
+              <span class="error-msg" id="phoneError"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="emailAddress">Email Address <span class="req">*</span></label>
+              <div class="input-icon-wrap">
+                <i class="fa-regular fa-envelope"></i>
+                <input type="email" id="emailAddress" name="email" placeholder="e.g. candidate@stem.edu.eg" required autocomplete="email">
+              </div>
+              <span class="field-hint">You will receive confirmation and updates here</span>
+              <span class="error-msg" id="emailError"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 2: Grade Verification (Strict Photo Uploads) -->
+        <section class="form-card highlight-card">
+          <div class="card-header">
+            <div class="step-indicator">02</div>
+            <div>
+              <h2 class="card-title">Academic Grade Verification (Grade 10)</h2>
+              <p class="card-desc">
+                Proof of academic strength in Math and Mechanics is required. Please upload an official photo or clear screenshot of your grades for each term. <strong>(Photos only &mdash; text entries not accepted)</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid-2 upload-grid">
+            <!-- Term 1 Photo Dropzone -->
+            <div class="form-group">
+              <label class="upload-label">
+                Math & Mechanics &mdash; G10 First Term Grade Photo <span class="req">*</span>
+              </label>
+              
+              <div class="dropzone" id="dropzoneTerm1">
+                <input type="file" id="gradePhotoTerm1" name="gradePhotoTerm1" accept="image/*" class="file-input" required>
+                <div class="dropzone-default" id="defaultViewTerm1">
+                  <div class="upload-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <h4>Upload Term 1 Grade Photo</h4>
+                  <p>Drag & drop or <span class="browse-link">browse photo</span></p>
+                  <span class="file-types">PNG, JPG, JPEG, WEBP (Max 25MB)</span>
+                </div>
+
+                <div class="dropzone-preview hidden" id="previewTerm1">
+                  <img src="" alt="Term 1 Grade Preview" id="imgPreviewTerm1" class="preview-thumbnail">
+                  <div class="preview-info">
+                    <span class="preview-name" id="fileNameTerm1"></span>
+                    <span class="preview-size" id="fileSizeTerm1"></span>
+                    <button type="button" class="btn-remove-file" id="removeTerm1" title="Remove photo">
+                      <i class="fa-solid fa-trash-can"></i> Replace
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <span class="error-msg" id="term1Error"></span>
+            </div>
+
+            <!-- Term 2 Photo Dropzone -->
+            <div class="form-group">
+              <label class="upload-label">
+                Math & Mechanics &mdash; G10 Second Term Grade Photo <span class="req">*</span>
+              </label>
+              
+              <div class="dropzone" id="dropzoneTerm2">
+                <input type="file" id="gradePhotoTerm2" name="gradePhotoTerm2" accept="image/*" class="file-input" required>
+                <div class="dropzone-default" id="defaultViewTerm2">
+                  <div class="upload-icon">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                  </div>
+                  <h4>Upload Term 2 Grade Photo</h4>
+                  <p>Drag & drop or <span class="browse-link">browse photo</span></p>
+                  <span class="file-types">PNG, JPG, JPEG, WEBP (Max 25MB)</span>
+                </div>
+
+                <div class="dropzone-preview hidden" id="previewTerm2">
+                  <img src="" alt="Term 2 Grade Preview" id="imgPreviewTerm2" class="preview-thumbnail">
+                  <div class="preview-info">
+                    <span class="preview-name" id="fileNameTerm2"></span>
+                    <span class="preview-size" id="fileSizeTerm2"></span>
+                    <button type="button" class="btn-remove-file" id="removeTerm2" title="Remove photo">
+                      <i class="fa-solid fa-trash-can"></i> Replace
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <span class="error-msg" id="term2Error"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 3: Leadership Questions -->
+        <section class="form-card">
+          <div class="card-header">
+            <div class="step-indicator">03</div>
+            <div>
+              <h2 class="card-title">Leadership Questions & Vision</h2>
+              <p class="card-desc">Take your time to articulate your perspective, leadership philosophy, and upcoming goals.</p>
+            </div>
+          </div>
+
+          <div class="questions-stack">
+            <!-- Question 1: About Yourself -->
+            <div class="form-group">
+              <div class="question-header">
+                <label for="aboutYourself">
+                  <span class="q-number">Q1.</span> Talk about yourself:
+                  <span class="req">*</span>
+                </label>
+                <span class="char-counter" id="aboutCounter">0 words</span>
+              </div>
+              <p class="question-prompt">
+                Introduce yourself, your academic background in STEM, personal interests, key strengths, and any previous leadership or teamwork experiences.
+              </p>
+              <textarea id="aboutYourself" name="about" rows="4" placeholder="Write your response here..." required></textarea>
+              <span class="error-msg" id="aboutError"></span>
+            </div>
+
+            <!-- Question 2: Why are you passionate -->
+            <div class="form-group">
+              <div class="question-header">
+                <label for="passionReason">
+                  <span class="q-number">Q2.</span> Why are you passionate about leading the Math and Mechanics Club?
+                  <span class="req">*</span>
+                </label>
+                <span class="char-counter" id="passionCounter">0 words</span>
+              </div>
+              <p class="question-prompt">
+                What drives your enthusiasm for this club specifically? Why do you want to step into the leader role rather than just being a regular member?
+              </p>
+              <textarea id="passionReason" name="passion" rows="4" placeholder="Explain your passion and dedication..." required></textarea>
+              <span class="error-msg" id="passionError"></span>
+            </div>
+
+            <!-- Question 3: Plan for new season -->
+            <div class="form-group">
+              <div class="question-header">
+                <label for="seasonPlans">
+                  <span class="q-number">Q3.</span> What do you plan to do in the new season?
+                  <span class="req">*</span>
+                </label>
+                <span class="char-counter" id="plansCounter">0 words</span>
+              </div>
+              <p class="question-prompt">
+                Detail your vision: workshops, competitions (e.g., AMC, Physics/Mechanics Olympiads, STEM fairs), peer tutoring sessions, speaker events, resources, or structural improvements.
+              </p>
+              <textarea id="seasonPlans" name="plans" rows="5" placeholder="Outline your actionable plans, initiatives, and timeline..." required></textarea>
+              <span class="error-msg" id="plansError"></span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Form Submission Section -->
+        <div class="submit-card">
+          <div class="declaration">
+            <label class="checkbox-container">
+              <input type="checkbox" id="declarationCheck" required>
+              <span class="checkmark"></span>
+              <span class="label-text">
+                I hereby declare that all submitted contact info and attached G10 grade report photos are genuine and accurate.
+              </span>
+            </label>
+            <span class="error-msg" id="checkError"></span>
+          </div>
+
+          <div class="actions-row">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+              <span class="btn-text">
+                <i class="fa-solid fa-paper-plane"></i> Submit Leadership Application
+              </span>
+              <span class="btn-spinner hidden">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Uploading & Submitting...
+              </span>
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </main>
+
+    <!-- Success Confirmation View -->
+    <div class="success-card hidden" id="successCard">
+      <div class="success-icon-wrap">
+        <i class="fa-solid fa-circle-check"></i>
+      </div>
+      <h2>Application Submitted Successfully!</h2>
+      <p class="success-message">
+        Thank you for putting your forward as a candidate to lead the Math and Mechanics Club. Your application and grade verification photos have been securely stored.
+      </p>
+
+      <div class="applicant-id-box">
+        <span class="id-label">Your Candidate Reference ID</span>
+        <span class="id-value" id="candidateIdDisplay">MMC-XXXXXX-XXX</span>
+        <button type="button" class="btn-copy-id" id="copyIdBtn" title="Copy to clipboard">
+          <i class="fa-regular fa-copy"></i> Copy ID
+        </button>
+      </div>
+
+      <div class="next-steps-box">
+        <h3><i class="fa-solid fa-list-check"></i> What Happens Next?</h3>
+        <ul>
+          <li><strong>Review Phase:</strong> Current club leaders will review your application and grade verification photos.</li>
+          <li><strong>Interview Stage:</strong> Shortlisted candidates will be contacted via phone/WhatsApp for personal interviews.</li>
+          <li><strong>Leadership Announcement:</strong> Final selection will be announced ahead of the new season launch.</li>
+        </ul>
+      </div>
+
+      <div class="success-footer">
+        <button type="button" class="btn btn-secondary" onclick="window.location.reload()">
+          <i class="fa-solid fa-rotate-right"></i> Submit Another Application
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 Math and Mechanics Club &bull; High School Leadership Committee</p>
+      <p class="admin-link-hint">
+        Current Leader? <a href="/leaders" target="_blank"><i class="fa-solid fa-lock"></i> Leader Review Portal</a>
+      </p>
+    </footer>
+
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
