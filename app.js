@@ -289,8 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const about = document.getElementById('aboutYourself');
     const aboutErr = document.getElementById('aboutError');
-    if (!about.value.trim() || about.value.trim().length < 15) {
-      showError(aboutErr, 'Please tell us more about yourself (at least a few sentences).');
+    if (!about.value.trim()) {
+      showError(aboutErr, 'Please answer this question.');
       isValid = false;
     } else {
       clearError(aboutErr);
@@ -298,8 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const passion = document.getElementById('passionReason');
     const passionErr = document.getElementById('passionError');
-    if (!passion.value.trim() || passion.value.trim().length < 15) {
-      showError(passionErr, 'Please explain your passion and motivation for leading the club.');
+    if (!passion.value.trim()) {
+      showError(passionErr, 'Please answer this question.');
       isValid = false;
     } else {
       clearError(passionErr);
@@ -307,8 +307,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const plans = document.getElementById('seasonPlans');
     const plansErr = document.getElementById('plansError');
-    if (!plans.value.trim() || plans.value.trim().length < 15) {
-      showError(plansErr, 'Please share your plans and initiatives for the new season.');
+    if (!plans.value.trim()) {
+      showError(plansErr, 'Please answer this question.');
       isValid = false;
     } else {
       clearError(plansErr);

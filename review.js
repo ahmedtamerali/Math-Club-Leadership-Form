@@ -208,9 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
         <td style="font-size: 0.82rem; color: #94a3b8;">
           ${dateStr}
         </td>
-        <td class="text-right">
+        <td class="text-right" style="white-space: nowrap;">
           <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 0.82rem;" onclick="openDetailModal('${sub.id}')">
             <i class="fa-regular fa-eye"></i> Review
+          </button>
+          <button class="btn btn-outline-danger" style="padding: 6px 12px; font-size: 0.82rem; margin-left: 6px;" onclick="confirmDeleteSubmission('${sub.id}', '${escapeHtml(sub.student.name)}')">
+            <i class="fa-solid fa-trash-can"></i> Delete
           </button>
         </td>
       `;
@@ -316,30 +319,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Delete Submission
-  deleteCandidateBtn.addEventListener('click', async () => {
-    if (!activeSubmission) return;
-    const confirmDelete = confirm(`Are you sure you want to permanently delete the application of ${activeSubmission.student.name}? This will also delete their uploaded grade photos.`);
-    if (!confirmDelete) return;
+  // Delete Submission with Ensuring Confirmation Message
+  window.confirmDeleteSubmission = async function(id, name) {
+    const isSure = confirm(
+      `⚠️ ENSURE DELETION\n\nAre you sure you want to permanently delete the application of "${name}"?\n\nThis will remove their contact info, responses, and uploaded grade photos from MongoDB Atlas.\n\nThis action CANNOT be undone.`
+    );
+    if (!isSure) return;
 
     try {
-      const res = await fetch(`/api/submissions/${activeSubmission.id}`, {
+      const res = await fetch(`/api/submissions/${id}`, {
         method: 'DELETE',
         headers: { 'x-leader-key': currentPasscode }
       });
 
       if (res.ok) {
-        submissions = submissions.filter(s => s.id !== activeSubmission.id);
-        showToast('Application deleted.', 'success');
-        detailModal.classList.add('hidden');
+        submissions = submissions.filter(s => s.id !== id);
+        showToast(`Application of ${name} was permanently removed.`, 'success');
         renderStats();
         renderTable();
+        if (activeSubmission && activeSubmission.id === id) {
+          detailModal.classList.add('hidden');
+          activeSubmission = null;
+        }
       } else {
-        showToast('Failed to delete application.', 'error');
+        showToast('Failed to delete application from database.', 'error');
       }
     } catch (err) {
-      showToast('Error deleting application.', 'error');
+      console.error(err);
+      showToast('Network error while deleting application.', 'error');
     }
+  };
+
+  deleteCandidateBtn.addEventListener('click', () => {
+    if (!activeSubmission) return;
+    window.confirmDeleteSubmission(activeSubmission.id, activeSubmission.student.name);
   });
 
   // 6. Photo Lightbox Modal
