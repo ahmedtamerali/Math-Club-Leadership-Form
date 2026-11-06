@@ -68,28 +68,6 @@ async function connectDb() {
   }
 }
 
-// Local File Store Fallback (when MongoDB is not configured)
-const DATA_DIR = path.join(process.cwd(), 'data');
-const SUBMISSIONS_FILE = path.join(DATA_DIR, 'submissions.json');
-
-function getLocalSubmissions() {
-  try {
-    if (!fs.existsSync(SUBMISSIONS_FILE)) return [];
-    return JSON.parse(fs.readFileSync(SUBMISSIONS_FILE, 'utf-8'));
-  } catch (e) {
-    return [];
-  }
-}
-
-function saveLocalSubmissions(data) {
-  try {
-    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(data, null, 2), 'utf-8');
-  } catch (e) {
-    console.warn('Local save skipped (read-only environment):', e.message);
-  }
-}
-
 // Memory storage for serverless execution
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -108,8 +86,33 @@ app.use(cors());
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
-// Serve static frontend files
+// Helper to locate static files across local and Vercel environments
+function getPublicFile(filename) {
+  const possiblePaths = [
+    path.join(__dirname, '..', 'public', filename),
+    path.join(process.cwd(), 'public', filename),
+    path.join(__dirname, 'public', filename),
+    path.join(process.cwd(), filename)
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) return p;
+  }
+  return possiblePaths[0];
+}
+
+// Serve static assets (CSS, JS, icons)
+app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use(express.static(path.join(process.cwd(), 'public')));
+app.use(express.static(process.cwd()));
+
+// Frontend Page Routes
+app.get(['/', '/apply'], (req, res) => {
+  res.sendFile(getPublicFile('index.html'));
+});
+
+app.get(['/leaders', '/review'], (req, res) => {
+  res.sendFile(getPublicFile('review.html'));
+});
 
 // Leader Auth Check
 function authLeader(req, res, next) {
@@ -190,10 +193,6 @@ app.post(
       if (MONGODB_URI && SubmissionModel) {
         await SubmissionModel.create(newSubmission);
         console.log(`[+] Stored in MongoDB Atlas: ${applicantId} (${name})`);
-      } else {
-        const list = getLocalSubmissions();
-        list.unshift(newSubmission);
-        saveLocalSubmissions(list);
       }
 
       res.status(201).json({
@@ -216,8 +215,6 @@ app.get('/api/submissions', authLeader, async (req, res) => {
 
     if (MONGODB_URI && SubmissionModel) {
       submissions = await SubmissionModel.find().sort({ submittedAt: -1 }).lean();
-    } else {
-      submissions = getLocalSubmissions();
     }
 
     res.json({
@@ -251,19 +248,8 @@ app.patch('/api/submissions/:id', authLeader, async (req, res) => {
       );
       if (!updated) return res.status(404).json({ error: 'Applicant submission not found.' });
       return res.json({ success: true, message: 'Review updated.', submission: updated });
-    } else {
-      const list = getLocalSubmissions();
-      const idx = list.findIndex(s => s.id === id);
-      if (idx === -1) return res.status(404).json({ error: 'Applicant submission not found.' });
-
-      if (status !== undefined) list[idx].review.status = status;
-      if (rating !== undefined) list[idx].review.rating = Number(rating);
-      if (notes !== undefined) list[idx].review.notes = notes;
-      list[idx].review.updatedAt = new Date().toISOString();
-      saveLocalSubmissions(list);
-
-      return res.json({ success: true, message: 'Review updated.', submission: list[idx] });
     }
+    return res.status(400).json({ error: 'Database not connected' });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -277,10 +263,6 @@ app.delete('/api/submissions/:id', authLeader, async (req, res) => {
 
     if (MONGODB_URI && SubmissionModel) {
       await SubmissionModel.deleteOne({ id: id });
-    } else {
-      const list = getLocalSubmissions();
-      const filtered = list.filter(s => s.id !== id);
-      saveLocalSubmissions(filtered);
     }
 
     res.json({ success: true, message: 'Submission deleted.' });
@@ -297,8 +279,6 @@ app.get('/api/export-csv', authLeader, async (req, res) => {
 
     if (MONGODB_URI && SubmissionModel) {
       submissions = await SubmissionModel.find().sort({ submittedAt: -1 }).lean();
-    } else {
-      submissions = getLocalSubmissions();
     }
 
     const headers = [
@@ -348,7 +328,7 @@ app.get('/api/export-csv', authLeader, async (req, res) => {
 // Export app for Vercel
 module.exports = app;
 
-// Local development server
+// Local development listener
 if (require.main === module || !process.env.VERCEL) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, '0.0.0.0', () => {

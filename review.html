@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leader Review Portal | Math & Mechanics Club</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body class="admin-body">
+  <!-- Auth Gate Overlay -->
+  <div class="auth-overlay" id="authOverlay">
+    <div class="auth-card">
+      <div class="auth-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2>Leader Access Required</h2>
+      <p>Enter the leadership passcode to review candidate applications, view grade proofs, and manage selections.</p>
+      
+      <form id="authForm">
+        <div class="form-group">
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="passcodeInput" placeholder="Enter Leader Passcode" required autocomplete="current-password">
+          </div>
+          <span class="error-msg" id="authError"></span>
+        </div>
+        <button type="submit" class="btn btn-primary full-width" id="authBtn">
+          <i class="fa-solid fa-unlock"></i> Unlock Review Portal
+        </button>
+      </form>
+      <div class="auth-help">
+        Default passcode: <code>math2026</code>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-container" id="adminContent" style="display: none;">
+    <!-- Top Navigation Bar -->
+    <header class="admin-nav">
+      <div class="nav-left">
+        <div class="club-badge mini">
+          <div class="badge-icon">
+            <i class="fa-solid fa-compass-drafting"></i>
+          </div>
+          <div>
+            <span class="badge-title">Math & Mechanics Club</span>
+            <span class="badge-sub">Leader Revision & Selection Portal</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <a href="/apply" target="_blank" class="btn btn-ghost" title="Open student application form">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i> Student Form Link
+        </a>
+        <button type="button" class="btn btn-secondary" id="exportCsvBtn">
+          <i class="fa-solid fa-file-excel"></i> Export to CSV
+        </button>
+        <button type="button" class="btn btn-ghost" id="refreshBtn" title="Refresh submissions">
+          <i class="fa-solid fa-arrows-rotate"></i> Refresh
+        </button>
+        <button type="button" class="btn btn-outline-danger" id="logoutBtn" title="Lock portal">
+          <i class="fa-solid fa-lock"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats KPI Ribbon -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Total Applications</span>
+          <h3 class="stat-value" id="statTotal">0</h3>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-amber"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Pending Revision</span>
+          <h3 class="stat-value" id="statPending">0</h3>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-purple"><i class="fa-solid fa-star"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Shortlisted</span>
+          <h3 class="stat-value" id="statShortlisted">0</h3>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon icon-emerald"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Selected Leader</span>
+          <h3 class="stat-value" id="statSelected">0</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Toolbar -->
+    <section class="toolbar-card">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search by name, email, phone, or candidate ID...">
+      </div>
+
+      <div class="filters-row">
+        <div class="filter-item">
+          <label><i class="fa-solid fa-filter"></i> Status:</label>
+          <select id="statusFilter">
+            <option value="all">All Statuses</option>
+            <option value="Pending Review">Pending Review</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Shortlisted">Shortlisted</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
+            <option value="Selected Leader">Selected Leader</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label><i class="fa-solid fa-arrow-down-short-wide"></i> Sort By:</label>
+          <select id="sortBy">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="rating">Highest Rating</option>
+            <option value="name">Name (A-Z)</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Submissions Table / View -->
+    <section class="table-container">
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Candidate</th>
+              <th>Contact Info</th>
+              <th>Grade 10 Proof Photos</th>
+              <th>Status</th>
+              <th>Rating</th>
+              <th>Submitted</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="submissionsTableBody">
+            <!-- Dynamic rows will be inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state hidden" id="emptyState">
+        <div class="empty-icon"><i class="fa-regular fa-folder-open"></i></div>
+        <h3>No applications found</h3>
+        <p>No candidates match your current search or filter criteria. Share the student form link to start collecting applications!</p>
+        <button class="btn btn-secondary" id="copyStudentLinkBtn">
+          <i class="fa-regular fa-copy"></i> Copy Student Form Link
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay hidden" id="detailModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div>
+          <span class="modal-candidate-id" id="modalId">MMC-000000-000</span>
+          <h2 class="modal-candidate-name" id="modalName">Candidate Name</h2>
+          <span class="modal-date" id="modalDate">Submitted on Nov 6, 2026</span>
+        </div>
+        <button type="button" class="btn-close-modal" id="closeModalBtn">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Contact quick info -->
+        <div class="modal-section contact-ribbon">
+          <div class="contact-pill">
+            <i class="fa-solid fa-phone"></i>
+            <span id="modalPhone">0100000000</span>
+            <a href="#" id="modalPhoneLink" target="_blank" class="pill-action" title="Call/WhatsApp"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+          <div class="contact-pill">
+            <i class="fa-regular fa-envelope"></i>
+            <span id="modalEmail">candidate@stem.edu.eg</span>
+            <a href="#" id="modalEmailLink" class="pill-action" title="Send Email"><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+          </div>
+        </div>
+
+        <!-- Grade Proofs (Photos Only) -->
+        <div class="modal-section">
+          <h3 class="section-title">
+            <i class="fa-solid fa-camera"></i> Math & Mechanics G10 Grade Verification Photos
+          </h3>
+          <div class="photos-review-grid">
+            <!-- Term 1 Photo -->
+            <div class="photo-card">
+              <div class="photo-card-header">
+                <h4><i class="fa-solid fa-certificate"></i> Term 1 Grade Report</h4>
+                <a href="#" target="_blank" class="btn-photo-expand" id="term1FullBtn">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Full View
+                </a>
+              </div>
+              <div class="photo-preview-wrap">
+                <img src="" alt="Term 1 Grade Proof" id="modalTerm1Img" class="review-img" onclick="openPhotoViewer(this.src, 'G10 Term 1 Grade Report')">
+              </div>
+            </div>
+
+            <!-- Term 2 Photo -->
+            <div class="photo-card">
+              <div class="photo-card-header">
+                <h4><i class="fa-solid fa-certificate"></i> Term 2 Grade Report</h4>
+                <a href="#" target="_blank" class="btn-photo-expand" id="term2FullBtn">
+                  <i class="fa-solid fa-up-right-and-down-left-from-center"></i> Full View
+                </a>
+              </div>
+              <div class="photo-preview-wrap">
+                <img src="" alt="Term 2 Grade Proof" id="modalTerm2Img" class="review-img" onclick="openPhotoViewer(this.src, 'G10 Term 2 Grade Report')">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Written Responses -->
+        <div class="modal-section">
+          <h3 class="section-title">
+            <i class="fa-solid fa-feather"></i> Candidate Leadership Responses
+          </h3>
+
+          <div class="response-box">
+            <div class="response-header">
+              <h4>Q1. Talk About Yourself</h4>
+            </div>
+            <div class="response-body" id="modalAbout">
+              Candidate text...
+            </div>
+          </div>
+
+          <div class="response-box">
+            <div class="response-header">
+              <h4>Q2. Passion for Leading the Math & Mechanics Club</h4>
+            </div>
+            <div class="response-body" id="modalPassion">
+              Candidate text...
+            </div>
+          </div>
+
+          <div class="response-box">
+            <div class="response-header">
+              <h4>Q3. Plans for the New Season</h4>
+            </div>
+            <div class="response-body" id="modalPlans">
+              Candidate text...
+            </div>
+          </div>
+        </div>
+
+        <!-- Leader Evaluation & Decision Panel -->
+        <div class="modal-section evaluation-panel">
+          <h3 class="section-title">
+            <i class="fa-solid fa-gavel"></i> Committee Evaluation & Decision
+          </h3>
+
+          <form id="evaluationForm">
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="evalStatus">Selection Status:</label>
+                <select id="evalStatus" class="select-styled">
+                  <option value="Pending Review">Pending Review</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Shortlisted">⭐ Shortlisted</option>
+                  <option value="Interview Scheduled">📞 Interview Scheduled</option>
+                  <option value="Selected Leader">🏆 Selected Leader</option>
+                  <option value="Rejected">❌ Rejected</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="evalRating">Candidate Score (0 - 10): <strong id="ratingDisplay">0/10</strong></label>
+                <input type="range" id="evalRating" min="0" max="10" step="1" value="0" class="rating-slider">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="evalNotes">Internal Committee Notes / Feedback:</label>
+              <textarea id="evalNotes" rows="3" placeholder="Add confidential notes on interview performance, grade strengths, leadership vision..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" id="saveEvalBtn">
+                <i class="fa-solid fa-floppy-disk"></i> Save Evaluation
+              </button>
+              <button type="button" class="btn btn-outline-danger" id="deleteCandidateBtn">
+                <i class="fa-solid fa-trash-can"></i> Delete Application
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo Fullscreen Lightbox Modal -->
+  <div class="lightbox-overlay hidden" id="lightboxModal">
+    <div class="lightbox-header">
+      <span class="lightbox-title" id="lightboxTitle">Grade Proof</span>
+      <button class="lightbox-close" id="closeLightboxBtn">&times;</button>
+    </div>
+    <div class="lightbox-body">
+      <img src="" alt="Enlarged photo" id="lightboxImg">
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="review.js"></script>
+</body>
+</html>
